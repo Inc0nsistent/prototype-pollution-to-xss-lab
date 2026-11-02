@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Marketing Settings</title>
+		<link href="bootstrap.min.css" rel="stylesheet" />
+		<link href="custom.css" rel="stylesheet" />
+		<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+		<script>
+			const defaultPreferences = {
+				updates: false,
+				newsletter: false,
+				marketingCalls: false,
+			};
+
+			// get URL parameters
+			function getQueryParams(param) {
+				const urlParams = new URLSearchParams(window.location.search);
+				return urlParams.get(param);
+			}
+
+			// load preferences or set default
+			function loadPreferences() {
+				const storedPreferences = JSON.parse(localStorage.getItem("userPreferences"));
+				if (storedPreferences) {
+					return $.extend(true, {}, storedPreferences);
+				}
+				return $.extend(true, {}, defaultPreferences);
+			}
+
+			// save preferences
+			function savePreferences(preferences) {
+				localStorage.setItem("userPreferences", JSON.stringify(preferences));
+			}
+
+			// update UI
+			function updateUI(preferences) {
+				document.getElementById("optInUpdates").checked = preferences.updates;
+				document.getElementById("optInNewsletter").checked = preferences.newsletter;
+				document.getElementById("optInCalls").checked = preferences.marketingCalls;
+			}
+
+			// compare preferences
+			function comparePreferences(oldPreferences, newPreferences) {
+				const changed = JSON.stringify(oldPreferences) !== JSON.stringify(newPreferences);
+
+				if (changed || {}.message) {
+					const message = {}.message || "Settings updated!";
+					document.getElementById("statusMessage").innerHTML = message;
+					document.getElementById("statusMessage").style.display = "block";
+				}
+			}
+
+			// apply user settings from URL
+			function applySettingsFromURL() {
+				const settings = getQueryParams("updateSettings");
+				if (settings) {
+					try {
+						const userSettings = JSON.parse(settings);
+						const currentPreferences = loadPreferences();
+						const updatedPreferences = $.extend(true, currentPreferences, userSettings);
+						savePreferences(updatedPreferences);
+						updateUI(updatedPreferences);
+						comparePreferences(currentPreferences, updatedPreferences);
+					} catch (e) {
+						console.error("Invalid settings:", e);
+					}
+				}
+			}
+
+			// toggle toggle
+			function handleToggle() {
+				const preferences = {
+					updates: document.getElementById("optInUpdates").checked,
+					newsletter: document.getElementById("optInNewsletter").checked,
+					marketingCalls: document.getElementById("optInCalls").checked,
+				};
+				const oldPreferences = loadPreferences();
+				savePreferences(preferences);
+				comparePreferences(oldPreferences, preferences);
+			}
+
+			document.addEventListener("DOMContentLoaded", function () {
+				const preferences = loadPreferences();
+				updateUI(preferences);
+				applySettingsFromURL();
+
+				document.getElementById("optInUpdates").addEventListener("change", handleToggle);
+				document.getElementById("optInNewsletter").addEventListener("change", handleToggle);
+				document.getElementById("optInCalls").addEventListener("change", handleToggle);
+			});
+		</script>
+	</head>
+	<body class="d-flex justify-content-center align-items-center vh-100">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-md-6 col-lg-4 settings-container">
+					<h1 class="text-center mb-4">Manage Your Marketing Preferences</h1>
+					<form class="bg-light p-4 rounded shadow">
+						<div class="form-check form-switch mb-3">
+							<input class="form-check-input" type="checkbox" id="optInUpdates" />
+							<label class="form-check-label" for="optInUpdates">Opt-in for Updates</label>
+						</div>
+						<div class="form-check form-switch mb-3">
+							<input class="form-check-input" type="checkbox" id="optInNewsletter" />
+							<label class="form-check-label" for="optInNewsletter">Opt-in for Newsletter</label>
+						</div>
+						<div class="form-check form-switch mb-3">
+							<input class="form-check-input" type="checkbox" id="optInCalls" />
+							<label class="form-check-label" for="optInCalls">Opt-in for Marketing Calls</label>
+						</div>
+					</form>
+					<div id="statusMessage" class="alert alert-success mt-3" style="display: none"></div>
+				</div>
+			</div>
+			<footer class="text-center mt-5">
+				<p>
+					If you enjoyed your time here, then
+					<a href="https://github.com/Inc0nsistent" target="_blank">feel free to connect</a>.
+				</p>
+			</footer>
+		</div>
+	</body>
+</html>
